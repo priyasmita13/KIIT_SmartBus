@@ -1,0 +1,16 @@
+# ── Dependencies (any depth) ───────────────────────────────────
+**/node_modules/
+node_modules/
+
+# ── Environment variables ──────────────────────────────────────
+**/.env
+.env
+
+# ── Build output ───────────────────────────────────────────────
+**/dist/
+dist/
+
+# ── OS / Editor junk ───────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.log
