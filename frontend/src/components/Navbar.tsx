@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Bus, Menu, X, MapPin, Users, Calendar, Shield, HelpCircle, LogIn, UserPlus, LogOut, UserCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<{name: string, role: string} | null>(null);
+  const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -21,31 +21,14 @@ const Navbar = () => {
 
   const filteredNavItems = navItems.filter((item) => {
     if (item.requiresAdmin && user?.role !== 'ADMIN') return false;
-    if (item.requiresAuth && !isAuthenticated) return false;
+    if (item.requiresAuth && !user) return false;
     return true;
   });
 
   const isActive = (path: string) => location.pathname === path;
 
-  // Check authentication status
-  useEffect(() => {
-    const token = sessionStorage.getItem('accessToken');
-    const userData = sessionStorage.getItem('user');
-    
-    if (token && userData) {
-      setIsAuthenticated(true);
-      setUser(JSON.parse(userData));
-    } else {
-      setIsAuthenticated(false);
-      setUser(null);
-    }
-  }, [location.pathname]);
-
   const handleLogout = () => {
-    sessionStorage.removeItem('accessToken');
-    sessionStorage.removeItem('user');
-    setIsAuthenticated(false);
-    setUser(null);
+    logout();
     navigate('/login');
   };
 
@@ -80,13 +63,13 @@ const Navbar = () => {
                 <span className="text-center">{label}</span>
               </Link>
             ))}
-            
+
             {/* Auth Buttons */}
             <div className="ml-4 flex items-center space-x-2 border-l border-gray-200 pl-4">
-              {isAuthenticated ? (
+              {user ? (
                 <>
                   <span className="text-sm text-gray-600 hidden sm:block">
-                    Welcome, {user?.name || 'User'}
+                    Welcome, {user.name}
                   </span>
                   <button
                     onClick={handleLogout}
@@ -145,19 +128,16 @@ const Navbar = () => {
                   <span>{label}</span>
                 </Link>
               ))}
-              
+
               {/* Mobile Auth Buttons */}
               <div className="pt-4 border-t border-gray-200 mt-4">
-                {isAuthenticated ? (
+                {user ? (
                   <>
                     <div className="px-4 py-2 text-sm text-gray-600">
-                      Welcome, {user?.name || 'User'}
+                      Welcome, {user.name}
                     </div>
                     <button
-                      onClick={() => {
-                        handleLogout();
-                        setIsMenuOpen(false);
-                      }}
+                      onClick={() => { handleLogout(); setIsMenuOpen(false); }}
                       className="flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium bg-red-500 text-white hover:bg-red-600 transition-colors duration-200 w-full"
                     >
                       <LogOut className="h-5 w-5" />
@@ -194,5 +174,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-
-

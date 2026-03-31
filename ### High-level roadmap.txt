@@ -1,4 +1,4 @@
-### High-level roadmap
+-### High-level roadmap
 
 - **Phase 1 (MVP): Live tracking + destination + seat tier**
 - **Phase 2: Reliability, safety, and usability upgrades**

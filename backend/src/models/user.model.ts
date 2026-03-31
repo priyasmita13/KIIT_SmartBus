@@ -14,6 +14,9 @@ export interface UserDocument extends Document {
     lastUpdated: Date;
   };
   isOnline?: boolean;
+  isEmailVerified?: boolean;
+  emailVerificationOTP?: string;
+  emailVerificationOTPExpires?: Date;
 }
 
 const userSchema = new Schema<UserDocument>(
@@ -28,7 +31,10 @@ const userSchema = new Schema<UserDocument>(
       longitude: { type: Number },
       lastUpdated: { type: Date, default: Date.now }
     },
-    isOnline: { type: Boolean, default: false }
+    isOnline: { type: Boolean, default: false },
+    isEmailVerified: { type: Boolean },
+    emailVerificationOTP: { type: String, select: false },
+    emailVerificationOTPExpires: { type: Date, select: false },
   },
   { timestamps: true }
 );
