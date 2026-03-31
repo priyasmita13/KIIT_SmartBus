@@ -10,10 +10,13 @@ import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import ProfilePage from './pages/ProfilePage'
 import AdminPage from './pages/AdminPage'
+import BusDetail from './pages/BusDetail'
+import { JoeBot } from './chatbot'
 
 export default function App() {
   return (
     <Router>
+      <JoeBot />
       <Routes>
         {/* Auth pages without navbar/footer */}
         <Route path="/login" element={<LoginPage />} />
@@ -43,6 +46,15 @@ export default function App() {
             <Navbar />
             <main className="flex-grow">
               <SeatAvailability />
+            </main>
+            <Footer />
+          </div>
+        } />
+        <Route path="/bus/:busId" element={
+          <div className="min-h-screen bg-gray-50 flex flex-col">
+            <Navbar />
+            <main className="flex-grow">
+              <BusDetail />
             </main>
             <Footer />
           </div>

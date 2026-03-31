@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Users, Bus, Clock, MapPin, Filter, RefreshCw } from 'lucide-react';
 
 const SeatAvailability = () => {
@@ -239,9 +240,9 @@ const SeatAvailability = () => {
           const occupancyPercentage = ((bus.totalSeats - bus.availableSeats) / bus.totalSeats) * 100;
           
           return (
-            <a
+            <Link
               key={bus.id}
-              href={bus.link}
+              to={bus.link}
               className={`block ${styles.bg} ${styles.border} border-2 rounded-2xl p-6 transition-all hover:shadow-2xl transform hover:scale-105 backdrop-blur-lg`}
             >
               <div className="flex items-center space-x-4 mb-4">
@@ -327,7 +328,7 @@ const SeatAvailability = () => {
               <div className="mt-2 text-xs text-gray-500">
                 Last updated: {bus.lastUpdated}
               </div>
-            </a>
+            </Link>
           );
         })}
       </div>
