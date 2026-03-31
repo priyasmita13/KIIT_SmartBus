@@ -6,7 +6,7 @@ export class LocationController {
   // Update user's location
   static async updateLocation(req: express.Request, res: express.Response) {
     try {
-      const { latitude, longitude } = req.body;
+      const { latitude, longitude, destination } = req.body;
       const userId = (req as any).user?.id;
 
       if (!userId) {
@@ -17,7 +17,7 @@ export class LocationController {
         return res.status(400).json({ error: 'Latitude and longitude are required' });
       }
 
-      const updatedUser = await LocationService.updateLocation(userId, latitude, longitude);
+      const updatedUser = await LocationService.updateLocation(userId, latitude, longitude, destination);
       
       if (!updatedUser) {
         return res.status(404).json({ error: 'User not found' });
@@ -34,15 +34,10 @@ export class LocationController {
     }
   }
 
-  // Get nearby drivers (for students)
+  // Get nearby drivers (for students) — PUBLIC, no auth needed
   static async getNearbyDrivers(req: express.Request, res: express.Response) {
     try {
       const { latitude, longitude, radius = 5 } = req.query;
-      const userId = (req as any).user?.id;
-
-      if (!userId) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
 
       if (!latitude || !longitude) {
         return res.status(400).json({ error: 'Latitude and longitude are required' });
@@ -60,6 +55,7 @@ export class LocationController {
           id: driver._id,
           name: driver.name,
           busId: driver.driverBusId,
+          destination: driver.currentDestination || 'Unknown',
           location: driver.location,
           lastUpdated: driver.location?.lastUpdated
         }))

@@ -8,21 +8,16 @@ export interface LocationUpdate {
 }
 
 export class LocationService {
-  // Update user location
-  static async updateLocation(userId: string, latitude: number, longitude: number): Promise<UserDocument | null> {
+  // Update user location (destination optional — driver sets it when going online)
+  static async updateLocation(userId: string, latitude: number, longitude: number, destination?: string): Promise<UserDocument | null> {
     try {
-      const user = await User.findByIdAndUpdate(
-        userId,
-        {
-          location: {
-            latitude,
-            longitude,
-            lastUpdated: new Date()
-          },
-          isOnline: true
-        },
-        { new: true }
-      );
+      const update: any = {
+        location: { latitude, longitude, lastUpdated: new Date() },
+        isOnline: true,
+      };
+      if (destination !== undefined) update.currentDestination = destination;
+
+      const user = await User.findByIdAndUpdate(userId, update, { new: true });
       return user;
     } catch (error) {
       console.error('Error updating location:', error);

@@ -4,6 +4,8 @@ import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-le
 import { Icon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
+const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
+
 // Fix Leaflet default icons
 import L from 'leaflet';
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -20,6 +22,15 @@ interface Position {
   longitude: number;
   accuracy?: number;
   timestamp?: number;
+}
+
+interface NearbyBus {
+  id: string;
+  name: string;
+  busId: string;
+  destination: string;
+  location: { latitude: number; longitude: number; lastUpdated: string };
+  distanceKm?: number;
 }
 
 interface RecenterMapProps {
@@ -53,11 +64,32 @@ const LiveTracker: React.FC = () => {
   const [shouldRecenter, setShouldRecenter] = useState(true);
   const [updateCount, setUpdateCount] = useState(0);
   const [lastUpdateTime, setLastUpdateTime] = useState<string | null>(null);
+  const [nearbyBuses, setNearbyBuses] = useState<NearbyBus[]>([]);
 
   const watchIdRef = useRef<number | null>(null);
   const mapInitializedRef = useRef(false);
   const geocodeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const busPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const GOOD_ACCURACY = 50; // meters
+
+  // Custom bus marker (yellow bus icon)
+  const busIcon = new Icon({
+    iconUrl:
+      'data:image/svg+xml;charset=utf-8,' +
+      encodeURIComponent(`
+        <svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="8" width="28" height="20" rx="4" fill="#F59E0B" stroke="white" stroke-width="2"/>
+          <rect x="7" y="11" width="7" height="6" rx="1" fill="white" fill-opacity="0.8"/>
+          <rect x="16" y="11" width="7" height="6" rx="1" fill="white" fill-opacity="0.8"/>
+          <circle cx="10" cy="30" r="3" fill="#374151" stroke="white" stroke-width="1.5"/>
+          <circle cx="26" cy="30" r="3" fill="#374151" stroke="white" stroke-width="1.5"/>
+          <rect x="4" y="22" width="28" height="4" rx="1" fill="#D97706"/>
+        </svg>
+      `),
+    iconSize: [36, 36],
+    iconAnchor: [18, 30],
+    popupAnchor: [0, -30],
+  });
 
   // Custom user marker (pulsing green dot)
   const userIcon = new Icon({
@@ -199,6 +231,50 @@ const LiveTracker: React.FC = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Fetch nearby buses — starts once user location is known, polls every 5s
+  const fetchNearbyBuses = useCallback(async (lat: number, lng: number) => {
+    try {
+      const res = await fetch(
+        `${API}/api/location/nearby-drivers?latitude=${lat}&longitude=${lng}&radius=10`
+      );
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.success && Array.isArray(data.drivers)) {
+        // Sort by distance, cap at 4
+        const withDist = data.drivers.map((d: NearbyBus) => {
+          if (!d.location) return { ...d, distanceKm: 999 };
+          const R = 6371;
+          const dLat = ((d.location.latitude - lat) * Math.PI) / 180;
+          const dLng = ((d.location.longitude - lng) * Math.PI) / 180;
+          const a =
+            Math.sin(dLat / 2) ** 2 +
+            Math.cos((lat * Math.PI) / 180) *
+              Math.cos((d.location.latitude * Math.PI) / 180) *
+              Math.sin(dLng / 2) ** 2;
+          const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          return { ...d, distanceKm: dist };
+        });
+        withDist.sort((a: NearbyBus, b: NearbyBus) => (a.distanceKm ?? 0) - (b.distanceKm ?? 0));
+        setNearbyBuses(withDist.slice(0, 4));
+      }
+    } catch {
+      // silently ignore — bus data is supplementary
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!userLocation) return;
+    // Fetch immediately when location becomes available
+    fetchNearbyBuses(userLocation.latitude, userLocation.longitude);
+    // Then poll every 5 seconds
+    busPollingRef.current = setInterval(() => {
+      fetchNearbyBuses(userLocation.latitude, userLocation.longitude);
+    }, 5000);
+    return () => {
+      if (busPollingRef.current) clearInterval(busPollingRef.current);
+    };
+  }, [userLocation?.latitude, userLocation?.longitude, fetchNearbyBuses]);
 
   // Force refresh: clears everything and re-starts
   const refreshData = () => {
@@ -407,6 +483,32 @@ const LiveTracker: React.FC = () => {
                         />
                       </>
                     )}
+                    {/* Bus markers */}
+                    {nearbyBuses.map((bus) =>
+                      bus.location ? (
+                        <Marker
+                          key={bus.id}
+                          position={[bus.location.latitude, bus.location.longitude]}
+                          icon={busIcon}
+                        >
+                          <Popup>
+                            <div style={{ minWidth: '170px' }}>
+                              <p className="font-semibold text-yellow-600 mb-1">🚌 {bus.name}</p>
+                              <p className="text-sm text-gray-700">📍 Heading to: <strong>{bus.destination}</strong></p>
+                              {bus.busId && <p className="text-xs text-gray-500 mt-1">Bus ID: {bus.busId}</p>}
+                              {bus.distanceKm !== undefined && (
+                                <p className="text-xs text-gray-500">
+                                  Distance: {bus.distanceKm < 1 ? `${Math.round(bus.distanceKm * 1000)}m` : `${bus.distanceKm.toFixed(1)}km`} away
+                                </p>
+                              )}
+                              <p className="text-xs text-gray-400 mt-1">
+                                Updated: {bus.location.lastUpdated ? new Date(bus.location.lastUpdated).toLocaleTimeString() : 'recently'}
+                              </p>
+                            </div>
+                          </Popup>
+                        </Marker>
+                      ) : null
+                    )}
                   </MapContainer>
                 )}
 
@@ -529,11 +631,39 @@ const LiveTracker: React.FC = () => {
 
             {/* Bus Status Card */}
             <div className="bg-white/80 backdrop-blur-lg rounded-xl shadow-lg p-6 border border-white/20">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Nearby Buses</h3>
-              <div className="text-center py-4">
-                <Bus className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-600 text-sm">Bus tracking coming soon</p>
-              </div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center space-x-2">
+                <Bus className="h-5 w-5 text-yellow-500" />
+                <span>Nearby Buses</span>
+                {nearbyBuses.length > 0 && (
+                  <span className="ml-auto text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-normal">{nearbyBuses.length} online</span>
+                )}
+              </h3>
+              {nearbyBuses.length === 0 ? (
+                <div className="text-center py-4">
+                  <Bus className="h-10 w-10 text-gray-300 mx-auto mb-2" />
+                  <p className="text-gray-500 text-sm">
+                    {userLocation ? 'No buses nearby right now' : 'Waiting for your location…'}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {nearbyBuses.map((bus) => (
+                    <div key={bus.id} className="bg-yellow-50 border border-yellow-100 rounded-lg p-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="text-sm font-semibold text-gray-800">🚌 {bus.name}</p>
+                          <p className="text-xs text-yellow-700 mt-0.5">→ {bus.destination}</p>
+                        </div>
+                        {bus.distanceKm !== undefined && (
+                          <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
+                            {bus.distanceKm < 1 ? `${Math.round(bus.distanceKm * 1000)}m` : `${bus.distanceKm.toFixed(1)}km`}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Legend */}
@@ -547,6 +677,10 @@ const LiveTracker: React.FC = () => {
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 rounded-full bg-green-500/30 border border-green-500 border-dashed"></div>
                   <span className="text-xs text-gray-600">Accuracy Radius</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                  <span className="text-xs text-gray-600">Live Bus</span>
                 </div>
               </div>
             </div>

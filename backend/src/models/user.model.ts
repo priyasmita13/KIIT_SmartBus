@@ -13,6 +13,7 @@ export interface UserDocument extends Document {
     longitude: number;
     lastUpdated: Date;
   };
+  currentDestination?: string;
   isOnline?: boolean;
   isEmailVerified?: boolean;
   emailVerificationOTP?: string;
@@ -31,6 +32,7 @@ const userSchema = new Schema<UserDocument>(
       longitude: { type: Number },
       lastUpdated: { type: Date, default: Date.now }
     },
+    currentDestination: { type: String, default: '' },
     isOnline: { type: Boolean, default: false },
     isEmailVerified: { type: Boolean },
     emailVerificationOTP: { type: String, select: false },

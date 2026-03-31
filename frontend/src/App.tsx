@@ -14,6 +14,7 @@ import SignupPage from './pages/SignupPage'
 import ProfilePage from './pages/ProfilePage'
 import AdminPage from './pages/AdminPage'
 import BusDetail from './pages/BusDetail'
+import DriverMode from './pages/DriverMode'
 import { JoeBot } from './chatbot'
 
 function Layout({ children }: { children: ReactNode }) {
@@ -63,6 +64,7 @@ export default function App() {
           {/* Role-based landing routes */}
           <Route path="/student" element={<Layout><Home /></Layout>} />
           <Route path="/driver" element={<Layout><Home /></Layout>} />
+          <Route path="/driver-mode" element={<Layout><DriverMode /></Layout>} />
         </Routes>
       </Router>
     </AuthProvider>
