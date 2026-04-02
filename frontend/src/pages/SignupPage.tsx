@@ -4,7 +4,8 @@ import { useNavigate, Link } from 'react-router-dom'
 import { Bus, Mail, Lock, User, Shield, UserCheck, RefreshCw, ArrowLeft } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
-const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000'
+import { API_BASE as API } from '../lib/apiBase'
+
 
 type Role = 'STUDENT' | 'DRIVER' | 'ADMIN'
 

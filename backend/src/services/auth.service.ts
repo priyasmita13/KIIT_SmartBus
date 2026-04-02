@@ -69,9 +69,10 @@ export async function verifyEmailSignup(input: { userId: string; otp: string }) 
   }
 
   user.isEmailVerified = true;
-  user.emailVerificationOTP = undefined;
-  user.emailVerificationOTPExpires = undefined;
-  await user.save();
+  // Use $unset via updateOne so exactOptionalPropertyTypes strict mode is satisfied
+  await user.updateOne({ $unset: { emailVerificationOTP: 1, emailVerificationOTPExpires: 1 } });
+  user.emailVerificationOTP = undefined as any; // reflect in-memory only
+  user.emailVerificationOTPExpires = undefined as any;
 
   const tokens = signTokens({ sub: user.id, role: user.role });
   return { user: sanitize(user), ...tokens };

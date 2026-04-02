@@ -18,8 +18,7 @@ const otpSchema = new Schema<OtpDocument>(
   { timestamps: true }
 );
 
-// Create TTL index for automatic cleanup
-otpSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+// TTL index is defined inline on expiresAt field above — no duplicate needed
 
 export const Otp: Model<OtpDocument> = mongoose.models.Otp || mongoose.model<OtpDocument>('Otp', otpSchema);
 

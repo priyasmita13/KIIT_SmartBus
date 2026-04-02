@@ -34,7 +34,7 @@ const JoeBot: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 0,
-      text: "Hey! I'm **Joe Bot** 👋\nYour KIIT SmartBus assistant.\n\nAsk me anything about bus routes, schedules, seat availability, or how to use this website!",
+      text: "Hey! I'm your **SmartBus Assistant** 👋\n\nAsk me anything about bus routes, schedules, seat availability, or how to use this website!",
       sender: 'bot',
       timestamp: new Date(),
     },
@@ -263,7 +263,7 @@ const JoeBot: React.FC = () => {
         <button
           onClick={() => setIsOpen(true)}
           className="fixed bottom-6 right-6 z-[9999] bg-gradient-to-r from-green-primary to-green-secondary text-white w-14 h-14 rounded-full shadow-2xl hover:shadow-3xl hover:scale-110 transition-all flex items-center justify-center group"
-          aria-label="Open Joe Bot"
+          aria-label="Open SmartBus Assistant"
           id="joebot-trigger"
         >
           <Bot className="h-7 w-7 group-hover:scale-110 transition-transform" />
@@ -285,8 +285,7 @@ const JoeBot: React.FC = () => {
                 <Bot className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h3 className="text-white font-semibold text-sm leading-tight">Joe Bot</h3>
-                <p className="text-green-100 text-xs leading-tight">SmartBus Assistant</p>
+                <h3 className="text-white font-semibold text-sm leading-tight">SmartBus Assistant</h3>
               </div>
             </div>
             <button
@@ -351,8 +350,8 @@ const JoeBot: React.FC = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Quick help suggestions */}
-          {messages.length <= 1 && (
+          {/* Quick help suggestions — show after every bot answer, not while typing */}
+          {!isTyping && messages[messages.length - 1]?.sender === 'bot' && (
             <div className="px-4 py-2 bg-white border-t border-gray-100 flex-shrink-0">
               <div className="flex items-center space-x-1.5 mb-2">
                 <HelpCircle className="h-3.5 w-3.5 text-gray-400" />
@@ -381,7 +380,7 @@ const JoeBot: React.FC = () => {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask Joe anything…"
+                placeholder="Ask SmartBus anything…"
                 className="flex-1 bg-gray-100 rounded-xl px-3.5 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-primary/30 focus:bg-white transition-colors border border-transparent focus:border-green-primary/30"
                 id="joebot-input"
               />

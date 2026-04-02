@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Bus, Menu, X, MapPin, Users, Calendar, Shield, HelpCircle, LogIn, UserPlus, LogOut, UserCircle } from 'lucide-react';
+import { Bus, Menu, X, MapPin, Users, Calendar, Shield, HelpCircle, LogIn, UserPlus, LogOut, UserCircle, Wifi } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
@@ -14,6 +14,7 @@ const Navbar = () => {
     { path: '/live-tracker', label: 'Live Bus Tracker', icon: MapPin },
     { path: '/seat-availability', label: 'Seat Availability', icon: Users },
     { path: '/route-schedule', label: 'Route & Schedule', icon: Calendar },
+    { path: '/driver-mode', label: '🟢 Driver Mode', icon: Wifi, requiresDriver: true },
     { path: '/profile', label: 'Profile', icon: UserCircle, requiresAuth: true },
     { path: '/admin', label: 'Admin Panel', icon: Shield, requiresAdmin: true },
     { path: '/contact', label: 'Contact / Help', icon: HelpCircle },
@@ -21,6 +22,7 @@ const Navbar = () => {
 
   const filteredNavItems = navItems.filter((item) => {
     if (item.requiresAdmin && user?.role !== 'ADMIN') return false;
+    if (item.requiresDriver && user?.role !== 'DRIVER') return false;
     if (item.requiresAuth && !user) return false;
     return true;
   });

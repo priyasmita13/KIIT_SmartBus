@@ -5,7 +5,8 @@ import L from 'leaflet'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 
-const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000'
+import { API_BASE as API } from '../lib/apiBase'
+
 
 // Fix default icon paths for Leaflet in bundlers
 import iconUrl from 'leaflet/dist/images/marker-icon.png'

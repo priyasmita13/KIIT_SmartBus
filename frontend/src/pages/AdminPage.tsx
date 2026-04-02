@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Bus, AlertTriangle, MessageSquare, RefreshCw, MapPin, Users, Clock, CheckCircle, XCircle } from 'lucide-react';
 
-const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
+import { API_BASE as API } from '../lib/apiBase';
+
 
 interface BusData {
   _id: string;

@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
+import { API_BASE as API } from '../lib/apiBase';
+
 
 interface Location {
   latitude: number;

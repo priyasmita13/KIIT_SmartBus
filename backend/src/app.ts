@@ -23,13 +23,9 @@ app.use(
 );
 app.use(
   cors({
-    origin: (origin, cb) => {
-      if (!origin) return cb(null, true);
-      const explicitlyAllowed = config.corsOrigins.includes(origin);
-      const devLocalhostAllowed = !config.isProd && /^https?:\/\/(localhost|127\.0\.0\.1)(:\\d+)?$/.test(origin);
-      const allowed = explicitlyAllowed || devLocalhostAllowed;
-      cb(allowed ? null : new Error('CORS blocked'), allowed);
-    },
+    // Dev: allow any origin (ngrok, localhost.run, LAN IPs, etc.)
+    // Prod: restrict to the explicit CORS_ORIGINS list in .env
+    origin: config.isProd ? config.corsOrigins : true,
     credentials: true,
   })
 );
@@ -42,5 +38,3 @@ app.use('/api', routes);
 app.use(errorHandler);
 
 export default app;
-
-

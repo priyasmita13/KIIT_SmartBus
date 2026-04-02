@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { Bus, Mail, Lock, ArrowLeft, RefreshCw, Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
-const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000'
+import { API_BASE as API } from '../lib/apiBase'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -52,8 +52,15 @@ export default function LoginPage() {
       navigate(`/${role}`)
     } catch (err: any) {
       if (err?.response?.data?.needsVerification) {
-        setVerifyUserId(err.response.data.userId)
+        const uid = err.response.data.userId
+        setVerifyUserId(uid)
         setNeedsVerification(true)
+        // Auto-send a fresh OTP immediately — the original signup OTP may have expired
+        try {
+          await axios.post(`${API}/api/auth/resend-otp`, { userId: uid })
+        } catch {
+          // ignore — user can still click Resend manually
+        }
         startResendTimer()
       } else {
         setError(err?.response?.data?.error?.message || 'Login failed')

@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import axios from 'axios'
-
-const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000'
+import { API_BASE as API } from '../lib/apiBase'
 
 export type UserRole = 'STUDENT' | 'DRIVER' | 'ADMIN'
 

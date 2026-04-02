@@ -63,7 +63,7 @@ export default function App() {
 
           {/* Role-based landing routes */}
           <Route path="/student" element={<Layout><Home /></Layout>} />
-          <Route path="/driver" element={<Layout><Home /></Layout>} />
+          <Route path="/driver" element={<Layout><DriverMode /></Layout>} />
           <Route path="/driver-mode" element={<Layout><DriverMode /></Layout>} />
         </Routes>
       </Router>

@@ -48,7 +48,7 @@ const busSchema = new Schema<BusDocument>(
   { timestamps: true }
 );
 
-busSchema.index({ busId: 1 });
+// driverId and isActive indexes (busId already indexed via unique:true above)
 busSchema.index({ driverId: 1 });
 busSchema.index({ isActive: 1 });
 
